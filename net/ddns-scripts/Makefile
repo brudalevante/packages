@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ddns-scripts
 PKG_VERSION:=2.8.2
-PKG_RELEASE:=84
+PKG_RELEASE:=85
 
 PKG_LICENSE:=GPL-2.0
 
@@ -82,7 +82,7 @@ endef
 define Package/ddns-scripts_aliyun
     $(call Package/ddns-scripts/Default)
     TITLE:=DDNS extension for AliYun.com
-    DEPENDS:=ddns-scripts +wget +hmac-sha1-util
+    DEPENDS:=ddns-scripts +hmac-sha1-util +wget-any
 endef
 define Package/ddns-scripts_aliyun/description
 	Dynamic DNS Client scripts extension for AliYun.com
