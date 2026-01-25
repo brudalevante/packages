@@ -78,17 +78,6 @@ define Package/ddns-scripts-luadns/description
   Dynamic DNS Client scripts extension for LuaDNS API v1 (require curl)
 endef
 
-
-define Package/ddns-scripts_aliyun
-    $(call Package/ddns-scripts/Default)
-    TITLE:=DDNS extension for AliYun.com
-    DEPENDS:=ddns-scripts +hmac-sha1-util +wget-any
-endef
-define Package/ddns-scripts_aliyun/description
-	Dynamic DNS Client scripts extension for AliYun.com
-endef
-
-
 define Package/ddns-scripts-cloudflare
   $(call Package/ddns-scripts/Default)
   TITLE:=Extension for cloudflare.com API v4
@@ -415,7 +404,6 @@ define Package/ddns-scripts/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_DATA) ./files/etc/uci-defaults/50-ddns-migrate-retry-count \
 		$(1)/etc/uci-defaults/
-	$(INSTALL_DATA) ./files/uci.defaults $(1)/etc/uci-defaults/99-ddns
 endef
 
 define Package/ddns-scripts/postinst
@@ -495,22 +483,6 @@ fi
 exit 0
 endef
 
-define Package/ddns-scripts_aliyun/install
-	$(INSTALL_DIR) $(1)/usr/lib/ddns
-	$(INSTALL_BIN) ./files/update_aliyun_com.sh $(1)/usr/lib/ddns
-
-	$(INSTALL_DIR) $(1)/usr/share/ddns/default
-	$(INSTALL_DATA) ./files/usr/share/ddns/services/aliyun.com.json \
-		$(1)/usr/share/ddns/default
-endef
-
-define Package/ddns-scripts_aliyun/prerm
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ]; then
-	/etc/init.d/ddns stop
-fi
-exit 0
-endef
 
 define Package/ddns-scripts-cloudflare/install
 	$(INSTALL_DIR) $(1)/usr/lib/ddns
@@ -913,7 +885,6 @@ $(eval $(call BuildPackage,ddns-scripts))
 $(eval $(call BuildPackage,ddns-scripts-services))
 $(eval $(call BuildPackage,ddns-scripts-utils))
 $(eval $(call BuildPackage,ddns-scripts-luadns))
-$(eval $(call BuildPackage,ddns-scripts_aliyun))
 $(eval $(call BuildPackage,ddns-scripts-cloudflare))
 $(eval $(call BuildPackage,ddns-scripts-gcp))
 $(eval $(call BuildPackage,ddns-scripts-freedns))

@@ -249,7 +249,7 @@ endef
 define Package/prometheus-node-exporter-lua-mwan3
   $(call Package/prometheus-node-exporter-lua/Default)
   TITLE+= (mwan3 collector)
-  DEPENDS:=prometheus-node-exporter-lua
+  DEPENDS:=prometheus-node-exporter-lua +mwan3
 endef
 
 define Package/prometheus-node-exporter-lua-mwan3/install

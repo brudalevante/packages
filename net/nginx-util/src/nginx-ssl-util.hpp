@@ -166,9 +166,14 @@ static constexpr auto _escape = _Line{
         std::string ret{};
         for (char c : strptr) {
             switch (c) {
-                case '^': ret += '\\'; /* fallthrough */
-                case '_': /* fallthrough */
-                case '-': ret += c; break;
+                case '^':
+                    ret += '\\';
+                    ret += c;
+                    break;
+                case '_':
+                case '-':
+                    ret += c;
+                    break;
                 default:
                     if ((isalpha(c) != 0) || (isdigit(c) != 0)) {
                         ret += c;
@@ -451,7 +456,7 @@ inline void create_ssl_certificate(const std::string& crtpath,
 
         write_key(pkey, tmpkeypath);
 
-        std::string subject{"/C=ZZ/ST=Somewhere/L=None/CN=x-wrt.lan/O=x-wrt.lan"};
+        std::string subject{"/C=ZZ/ST=Somewhere/L=None/CN=OpenWrt/O=OpenWrt"};
         subject += noncestr.data();
 
         selfsigned(pkey, days, subject, tmpcrtpath);

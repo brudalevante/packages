@@ -8,13 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=miniupnpd
-PKG_VERSION:=20240802
-PKG_RELEASE:=1
+PKG_VERSION:=2.3.9
+PKG_RELEASE:=2
 
-PKG_SOURCE_URL:=https://codeload.github.com/x-wrt/miniupnp/tar.gz/$(PKG_VERSION)?
-PKG_HASH:=a4f4fe39f81b53845d7c078d4814aa5e7f0f99fa5e3e35be28ae0c6d3fda3dfc
+PKG_SOURCE_URL:=https://github.com/miniupnp/miniupnp/releases/download/miniupnpd_$(subst .,_,$(PKG_VERSION))
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)/miniupnpd
+PKG_HASH:=66cb3c3d697ab2bb3a61d3c48628166d6ba328d7c2dbeb95898fdf2a3202af7b
 
 PKG_MAINTAINER:=
 PKG_LICENSE:=BSD-3-Clause
@@ -27,14 +26,11 @@ PKG_BUILD_PARALLEL:=1
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/version.mk
 
-TAR_OPTIONS+= --strip-components 1
-TAR_CMD=$(HOST_TAR) -C $(1)/.. $(TAR_OPTIONS)
-
 define Package/miniupnpd/Default
   SECTION:=net
   CATEGORY:=Network
   DEPENDS:= \
-	+libcap \
+	+libcap-ng \
 	+libmnl \
 	+libuuid
   PROVIDES:=miniupnpd
@@ -78,19 +74,23 @@ define Build/Prepare
 endef
 
 CONFIGURE_ARGS = \
-	$(if $(CONFIG_IPV6),--ipv6) \
+	--disable-fork \
+	--disable-pppconn \
+	--firewall=$(BUILD_VARIANT) \
 	--igd2 \
+	$(if $(CONFIG_IPV6),--ipv6) \
 	--leasefile \
 	--portinuse \
-	--firewall=$(BUILD_VARIANT) \
-	--disable-fork \
-	--regex
+	--regex \
+	--vendorcfg
 
 TARGET_CFLAGS += $(FPIC)
 TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
 
 ifeq ($(BUILD_VARIANT),iptables)
+ifeq ($(filter $(ARCH),mips mipsel),)
 	TARGET_CFLAGS += -flto
+endif
 endif
 
 define Package/miniupnpd/install/Default
@@ -102,10 +102,6 @@ define Package/miniupnpd/install/Default
 	$(INSTALL_BIN) ./files/miniupnpd.init $(1)/etc/init.d/miniupnpd
 	$(INSTALL_CONF) ./files/upnpd.config $(1)/etc/config/upnpd
 	$(INSTALL_DATA) ./files/miniupnpd.hotplug $(1)/etc/hotplug.d/iface/50-miniupnpd
-	$(INSTALL_DIR) $(1)/usr/share/miniupnpd
-	$(INSTALL_DATA) ./files/core.sh $(1)/usr/share/miniupnpd/core.sh
-	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./files/miniupnpd.defaults.iptables $(1)/etc/uci-defaults/99-miniupnpd-nft
 endef
 
 define Package/miniupnpd-iptables/install
@@ -118,6 +114,8 @@ endef
 
 define Package/miniupnpd-nftables/install
 	$(call Package/miniupnpd/install/Default,$1)
+	$(INSTALL_DIR) $(1)/usr/share/nftables.d
+	$(CP) ./files/nftables.d/* $(1)/usr/share/nftables.d/
 endef
 
 $(eval $(call BuildPackage,miniupnpd-iptables))

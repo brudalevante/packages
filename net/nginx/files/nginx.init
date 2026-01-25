@@ -46,17 +46,13 @@ nginx_check_luci_template() {
 }
 
 nginx_init() {
-	eval $("${NGINX_UTIL}" get_env)
 	[ -z "${CONF}" ] || return # already called.
 
 	[ -d /var/log/nginx ] || mkdir -p /var/log/nginx
 	[ -d /var/lib/nginx ] || mkdir -p /var/lib/nginx
 
 	rm -f "$(readlink "${UCI_CONF}")"
-	for i in 1 2 3; do
-		busybox timeout 30 ${NGINX_UTIL} init_lan && break
-		logger -t "nginx_init" -p "daemon.info" "${NGINX_UTIL} init_lan timeout"
-	done
+	${NGINX_UTIL} init_lan
 
 	if [ -f $UCI_CONF_TEMPLATE ]; then
 		nginx_check_luci_template
@@ -128,7 +124,6 @@ configure_mdns() {
 }
 
 start_service() {
-	eval $("${NGINX_UTIL}" get_env)
 	nginx_init
 
 	procd_open_instance
@@ -146,7 +141,6 @@ start_service() {
 
 
 reload_service() {
-	eval $("${NGINX_UTIL}" get_env)
 	nginx_init
 
 	if [ "$(cat "/proc/$(cat "/var/run/nginx.pid")/cmdline")" = \
